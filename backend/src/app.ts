@@ -2,17 +2,9 @@ import express from "express";
 import cors from "cors";
 import path from "path";
 import { env } from "./config/env";
-import { authRouter } from "./modules/auth/auth.routes";
-import { meRouter, usersRouter } from "./modules/users/users.routes";
-import { discoverRouter } from "./modules/discovery/discovery.routes";
-import { matchesRouter } from "./modules/matches/matches.routes";
-import { datesRouter } from "./modules/dates/dates.routes";
-import { walletRouter, shopRouter } from "./modules/economy/economy.routes";
-import { moderationRouter } from "./modules/moderation/moderation.routes";
-import { adminRouter } from "./modules/admin/admin.routes";
-import { requireAuth, requireAdmin } from "./middleware/auth";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
 import { getSettings } from "./lib/settings";
+import { registerApi } from "./http/routes";
 
 export function createApp() {
   const app = express();
@@ -39,17 +31,7 @@ export function createApp() {
     }
   });
 
-  app.use("/api/auth", authRouter);
-  app.use("/api/me", requireAuth, meRouter);
-  app.use("/api/users", requireAuth, usersRouter);
-  app.use("/api/discover", requireAuth, discoverRouter);
-  app.use("/api/matches", requireAuth, matchesRouter);
-  app.use("/api", requireAuth, datesRouter);
-  app.use("/api/wallet", requireAuth, walletRouter);
-  app.use("/api/shop", requireAuth, shopRouter);
-  app.use("/api", requireAuth, moderationRouter);
-  app.use("/api/admin", requireAuth, requireAdmin, adminRouter);
-
+  registerApi(app);
   app.use(notFoundHandler);
   app.use(errorHandler);
   return app;

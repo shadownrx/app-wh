@@ -1,46 +1,33 @@
-# Hacé que pase
+# Project MVP — Hacé que pase
 
-Aplicación de citas para mayores de 18 años. El recorrido del producto es:
+App de citas para mayores de 18. El recorrido es:
 
 **Perfil → Match → Conversación → Propuesta → Cita → Encuentro verificado**
 
 Slogan provisional: *Hacé que pase.*
 
-Este repositorio arranca por el **backend del MVP** (Hito 1 y núcleo de los hitos siguientes). La app móvil (React Native + Expo) y el panel web de admin se agregan a continuación, consumiendo esta API.
-
-## Estructura
+## Carpetas
 
 ```
-backend/     API Node.js + Prisma (auth, discovery, matches, chat, citas, QR, moneda, admin)
-src/          Frontend web previo del repo (no es la app de citas)
+backend/     API Node.js (Hito 1 y núcleo del MVP)
+mobile/      App iOS/Android (React Native + Expo) — siguiente hito
+admin/       Panel web de administración — siguiente hito
+docs/        Alcance, API y notas técnicas
 ```
 
-## Backend
-
-Ver [`backend/README.md`](backend/README.md).
+## Backend (este entregable)
 
 ```bash
 cd backend
 npm install
 npx prisma generate && npx prisma db push && npm run db:seed
+npm test
 npm run dev
 ```
 
-## Alcance de este entregable
+API: `http://localhost:4000`
 
-Implementado en API:
+- Admin: `admin@hacequepase.local` / `Admin1234!`
+- Usuarios: `luna@test.local` (también martin, sofia, diego, valen) / `Password123!`
 
-- Autenticación, +18, verificación de email, recuperación de clave, baja de cuenta
-- Perfiles, fotos, preferencias, distancia aproximada
-- Descubrimiento con límite diario configurable, like/pass, match
-- Chat, propuesta de cita, QR de un solo uso, confirmación mutua
-- Moneda + historial + tienda (Deshacer pass, Perfiles extra, Super invitación, Boost, Reactivar match, Ver likes)
-- Persona del día, bloquear/reportar
-- Admin: usuarios, reportes, economía, configuración sin publicar la app, funnel y Match-to-Date Rate
-
-Pendiente (siguientes hitos, misma API):
-
-- App iOS/Android con Expo
-- Panel admin web
-- Push nativas (FCM/APNs) — hoy se registran tokens y eventos
-- PostgreSQL + object storage de producción
+Detalle: [`backend/README.md`](backend/README.md) y [`docs/api.md`](docs/api.md).

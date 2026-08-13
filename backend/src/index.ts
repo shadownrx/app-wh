@@ -1,8 +1,8 @@
 import http from "http";
 import { env } from "./config/env";
 import { createApp } from "./app";
-import { attachSockets } from "./sockets";
-import { expireInactive } from "./modules/matches/matches.routes";
+import { attachSockets } from "./realtime";
+import { expireInactiveMatches } from "./jobs/inactivity";
 import { bootstrapCatalog } from "./lib/bootstrap";
 
 async function main() {
@@ -12,7 +12,7 @@ async function main() {
   attachSockets(server);
 
   setInterval(() => {
-    expireInactive().catch((err) => console.error("inactive job", err));
+    expireInactiveMatches().catch((err) => console.error("inactive job", err));
   }, 15 * 60 * 1000);
 
   server.listen(env.port, () => {
