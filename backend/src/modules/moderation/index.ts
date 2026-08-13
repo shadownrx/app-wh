@@ -1,0 +1,1 @@
+export { moderationRouter } from "./routes";
