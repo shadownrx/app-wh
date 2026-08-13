@@ -1,0 +1,408 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String    @id @default(uuid())
+  email             String    @unique
+  phone             String?   @unique
+  passwordHash      String
+  dateOfBirth       DateTime
+  termsAcceptedAt   DateTime
+  privacyAcceptedAt DateTime
+  emailVerifiedAt   DateTime?
+  phoneVerifiedAt   DateTime?
+  status            String    @default("ACTIVE")
+  role              String    @default("USER")
+  lastActiveAt      DateTime  @default(now())
+  deletedAt         DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  profile                 Profile?
+  photos                  Photo[]
+  refreshTokens           RefreshToken[]
+  emailTokens             EmailToken[]
+  pushTokens              PushToken[]
+  notificationPreference  NotificationPreference?
+  wallet                  Wallet?
+  walletTx                WalletTransaction[]
+  swipesFrom              Swipe[]                 @relation("SwipesFrom")
+  swipesTo                Swipe[]                 @relation("SwipesTo")
+  connectionsAsLow        Connection[]            @relation("ConnectionLow")
+  connectionsAsHigh       Connection[]            @relation("ConnectionHigh")
+  messages                Message[]
+  proposals               DateProposal[]
+  checkInTokens           CheckInToken[]
+  blocksFrom              Block[]                 @relation("BlocksFrom")
+  blocksTo                Block[]                 @relation("BlocksTo")
+  reportsFrom             Report[]                @relation("ReportsFrom")
+  reportsTo               Report[]                @relation("ReportsTo")
+  analyticsEvents         AnalyticsEvent[]
+  quotas                  DailyQuota[]
+  personOfTheDayAsViewer  PersonOfTheDay[]        @relation("PotdViewer")
+  personOfTheDayAsFeatured PersonOfTheDay[]       @relation("PotdFeatured")
+  reputation              Reputation?
+  confirmations           DateConfirmation[]
+  lastPasses              LastPass[]
+  activeEffects           UserEffect[]
+}
+
+model Profile {
+  id                     String    @id @default(uuid())
+  userId                 String    @unique
+  displayName            String
+  gender                 String
+  interestedIn           String    @default("[]")
+  lookingFor             String    @default("DATING")
+  city                   String?
+  zone                   String?
+  latitude               Float?
+  longitude              Float?
+  locationUpdatedAt      DateTime?
+  maxDistanceKm          Int       @default(50)
+  ageMin                 Int       @default(18)
+  ageMax                 Int       @default(40)
+  bio                    String    @default("")
+  job                    String?
+  studies                String?
+  interests              String    @default("[]")
+  verifiedAt             DateTime?
+  verificationMethod     String?
+  onboardingCompletedAt  DateTime?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+  user                   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Photo {
+  id        String   @id @default(uuid())
+  userId    String
+  url       String
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, position])
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model EmailToken {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String
+  tokenHash String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PushToken {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  platform  String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model NotificationPreference {
+  userId           String  @id
+  newMatch         Boolean @default(true)
+  newMessage       Boolean @default(true)
+  dateProposal     Boolean @default(true)
+  dateAccepted     Boolean @default(true)
+  dateReminder     Boolean @default(true)
+  verifyMoment     Boolean @default(true)
+  coinsReceived    Boolean @default(true)
+  personOfTheDay   Boolean @default(true)
+  user             User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Swipe {
+  id         String   @id @default(uuid())
+  fromUserId String
+  toUserId   String
+  action     String
+  createdAt  DateTime @default(now())
+  fromUser   User     @relation("SwipesFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUser     User     @relation("SwipesTo", fields: [toUserId], references: [id], onDelete: Cascade)
+
+  @@unique([fromUserId, toUserId])
+  @@index([toUserId, action])
+}
+
+model LastPass {
+  userId     String   @id
+  targetId   String
+  swipedAt   DateTime @default(now())
+  restoredAt DateTime?
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Connection {
+  id                      String    @id @default(uuid())
+  userLowId               String
+  userHighId              String
+  status                  String    @default("MATCH")
+  matchedAt               DateTime  @default(now())
+  lastMessageAt           DateTime?
+  conversationRewardedAt  DateTime?
+  inactiveAt              DateTime?
+  archivedAt              DateTime?
+  superInviteFromId       String?
+  verifiedDateCount       Int       @default(0)
+  userLow                 User      @relation("ConnectionLow", fields: [userLowId], references: [id], onDelete: Cascade)
+  userHigh                User      @relation("ConnectionHigh", fields: [userHighId], references: [id], onDelete: Cascade)
+  messages                Message[]
+  proposals               DateProposal[]
+  checkInTokens           CheckInToken[]
+  verifications           DateVerification[]
+  confirmations           DateConfirmation[]
+
+  @@unique([userLowId, userHighId])
+  @@index([status])
+}
+
+model Message {
+  id           String   @id @default(uuid())
+  connectionId String
+  senderId     String
+  type         String   @default("TEXT")
+  content      String
+  createdAt    DateTime @default(now())
+  readAt       DateTime?
+  connection   Connection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  sender       User       @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([connectionId, createdAt])
+}
+
+model DateProposal {
+  id            String    @id @default(uuid())
+  connectionId  String
+  proposedById  String
+  scheduledAt   DateTime
+  zone          String
+  planType      String
+  note          String?
+  status        String    @default("PENDING")
+  parentId      String?
+  cancelledAt   DateTime?
+  cancelReason  String?
+  cancelledById String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  connection    Connection    @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  proposedBy    User          @relation(fields: [proposedById], references: [id], onDelete: Cascade)
+  parent        DateProposal? @relation("ProposalCounter", fields: [parentId], references: [id])
+  counters      DateProposal[] @relation("ProposalCounter")
+  verifications DateVerification[]
+  checkInTokens CheckInToken[]
+
+  @@index([connectionId, status])
+}
+
+model CheckInToken {
+  id           String    @id @default(uuid())
+  connectionId String
+  proposalId   String
+  createdById  String
+  tokenHash    String    @unique
+  expiresAt    DateTime
+  usedAt       DateTime?
+  usedById     String?
+  creatorLat   Float?
+  creatorLng   Float?
+  scannerLat   Float?
+  scannerLng   Float?
+  distanceM    Float?
+  createdAt    DateTime  @default(now())
+  connection   Connection   @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  proposal     DateProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  createdBy    User         @relation(fields: [createdById], references: [id], onDelete: Cascade)
+}
+
+model DateVerification {
+  id             String    @id @default(uuid())
+  connectionId   String
+  proposalId     String    @unique
+  qrValidatedAt  DateTime?
+  verifiedAt     DateTime?
+  jointPhotoUrl  String?
+  createdAt      DateTime  @default(now())
+  connection     Connection   @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  proposal       DateProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+}
+
+model DateConfirmation {
+  id           String   @id @default(uuid())
+  connectionId String
+  proposalId   String
+  userId       String
+  sawEachOther Boolean?
+  otherAppeared Boolean?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  connection   Connection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([proposalId, userId])
+}
+
+model Wallet {
+  userId            String @id
+  earnedBalance     Int    @default(0)
+  purchasedBalance  Int    @default(0)
+  user              User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model WalletTransaction {
+  id            String   @id @default(uuid())
+  userId        String
+  amount        Int
+  direction     String
+  source        String   @default("EARNED")
+  reason        String
+  referenceType String?
+  referenceId   String?
+  createdAt     DateTime @default(now())
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model ShopItem {
+  key         String  @id
+  name        String
+  description String
+  price       Int
+  enabled     Boolean @default(true)
+  sortOrder   Int     @default(0)
+}
+
+model UserEffect {
+  id        String    @id @default(uuid())
+  userId    String
+  key       String
+  expiresAt DateTime?
+  metadata  String    @default("{}")
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, key])
+}
+
+model DailyQuota {
+  id             String @id @default(uuid())
+  userId         String
+  day            String
+  profilesUsed   Int    @default(0)
+  extraProfiles  Int    @default(0)
+  earnedToday    Int    @default(0)
+  user           User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, day])
+}
+
+model PersonOfTheDay {
+  viewerId        String
+  day             String
+  featuredUserId  String
+  createdAt       DateTime @default(now())
+  viewer          User     @relation("PotdViewer", fields: [viewerId], references: [id], onDelete: Cascade)
+  featured        User     @relation("PotdFeatured", fields: [featuredUserId], references: [id], onDelete: Cascade)
+
+  @@id([viewerId, day])
+}
+
+model Block {
+  id         String   @id @default(uuid())
+  blockerId  String
+  blockedId  String
+  createdAt  DateTime @default(now())
+  blocker    User     @relation("BlocksFrom", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked    User     @relation("BlocksTo", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  @@unique([blockerId, blockedId])
+}
+
+model Report {
+  id          String    @id @default(uuid())
+  reporterId  String
+  reportedId  String
+  reason      String
+  details     String?
+  status      String    @default("OPEN")
+  resolution  String?
+  resolvedAt  DateTime?
+  resolvedBy  String?
+  createdAt   DateTime  @default(now())
+  reporter    User      @relation("ReportsFrom", fields: [reporterId], references: [id], onDelete: Cascade)
+  reported    User      @relation("ReportsTo", fields: [reportedId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+}
+
+model Reputation {
+  userId          String @id
+  verifiedDates   Int    @default(0)
+  cancellations   Int    @default(0)
+  noShows         Int    @default(0)
+  blocksReceived  Int    @default(0)
+  reportsReceived Int    @default(0)
+  reliableBadge   Boolean @default(false)
+  user            User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AppSetting {
+  key   String @id
+  value String
+}
+
+model AnalyticsEvent {
+  id         String   @id @default(uuid())
+  userId     String?
+  name       String
+  properties String   @default("{}")
+  createdAt  DateTime @default(now())
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([name, createdAt])
+  @@index([userId, name])
+}
+
+model SuspiciousActivity {
+  id        String   @id @default(uuid())
+  userId    String?
+  type      String
+  details   String   @default("{}")
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  adminId    String
+  action     String
+  targetType String?
+  targetId   String?
+  details    String   @default("{}")
+  createdAt  DateTime @default(now())
+}

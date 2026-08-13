@@ -1,70 +1,46 @@
-# Getting Started with Create React App
+# Hacé que pase
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Aplicación de citas para mayores de 18 años. El recorrido del producto es:
 
-## Available Scripts
+**Perfil → Match → Conversación → Propuesta → Cita → Encuentro verificado**
 
-In the project directory, you can run:
+Slogan provisional: *Hacé que pase.*
 
-### `npm start`
+Este repositorio arranca por el **backend del MVP** (Hito 1 y núcleo de los hitos siguientes). La app móvil (React Native + Expo) y el panel web de admin se agregan a continuación, consumiendo esta API.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Estructura
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+```
+backend/     API Node.js + Prisma (auth, discovery, matches, chat, citas, QR, moneda, admin)
+src/          Frontend web previo del repo (no es la app de citas)
+```
 
-### `npm test`
+## Backend
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Ver [`backend/README.md`](backend/README.md).
 
-### `npm run build`
+```bash
+cd backend
+npm install
+npx prisma generate && npx prisma db push && npm run db:seed
+npm run dev
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Alcance de este entregable
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Implementado en API:
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+- Autenticación, +18, verificación de email, recuperación de clave, baja de cuenta
+- Perfiles, fotos, preferencias, distancia aproximada
+- Descubrimiento con límite diario configurable, like/pass, match
+- Chat, propuesta de cita, QR de un solo uso, confirmación mutua
+- Moneda + historial + tienda (Deshacer pass, Perfiles extra, Super invitación, Boost, Reactivar match, Ver likes)
+- Persona del día, bloquear/reportar
+- Admin: usuarios, reportes, economía, configuración sin publicar la app, funnel y Match-to-Date Rate
 
-### `npm run eject`
+Pendiente (siguientes hitos, misma API):
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- App iOS/Android con Expo
+- Panel admin web
+- Push nativas (FCM/APNs) — hoy se registran tokens y eventos
+- PostgreSQL + object storage de producción
